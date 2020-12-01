@@ -4251,7 +4251,10 @@ int rtw_rsn_sync_pmkid(_adapter *adapter, u8 *ie, uint ie_len, int i_ent)
 			, FUNC_ADPT_ARG(adapter), KEY_ARG(sec->PMKIDList[i_ent].PMKID));
 
 		info.pmkid_cnt = 1; /* update new pmkid_cnt */
-		_rtw_memcpy(info.pmkid_list, sec->PMKIDList[i_ent].PMKID, 16);
+		if (sec->PMKIDList[i_ent].PMKID != NULL)
+			_rtw_memcpy(info.pmkid_list, sec->PMKIDList[i_ent].PMKID, 16);
+		else
+			return -1;
 	} else
 		info.pmkid_cnt = 0; /* update new pmkid_cnt */
 

@@ -1367,6 +1367,7 @@ u8 rtw_joinbss_cmd(_adapter  *padapter, struct wlan_network *pnetwork)
 	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	struct rf_ctl_t *rfctl = adapter_to_rfctl(padapter);
 	u32 tmp_len;
+	int ret;
 	u8 *ptmp = NULL;
 
 	rtw_led_control(padapter, LED_CTL_START_TO_LINK);
@@ -1456,6 +1457,12 @@ u8 rtw_joinbss_cmd(_adapter  *padapter, struct wlan_network *pnetwork)
 	psecnetwork->IELength = 12;
 
 	psecnetwork->IELength += rtw_restruct_sec_ie(padapter, psecnetwork->IEs + psecnetwork->IELength);
+	ret = rtw_restruct_sec_ie(padapter, psecnetwork->IEs + psecnetwork->IELength);
+	if (ret < 0)
+		/*Possible adaptor failure */
+		return _FAIL;
+	else
+		psecnetwork->IELength += ret;
 
 
 	pqospriv->qos_option = 0;
