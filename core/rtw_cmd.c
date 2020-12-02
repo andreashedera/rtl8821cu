@@ -1456,7 +1456,6 @@ u8 rtw_joinbss_cmd(_adapter  *padapter, struct wlan_network *pnetwork)
 	_rtw_memcpy(psecnetwork->IEs, pnetwork->network.IEs, 12);
 	psecnetwork->IELength = 12;
 
-	psecnetwork->IELength += rtw_restruct_sec_ie(padapter, psecnetwork->IEs + psecnetwork->IELength);
 	ret = rtw_restruct_sec_ie(padapter, psecnetwork->IEs + psecnetwork->IELength);
 	if (ret < 0)
 		/*Possible adaptor failure */
