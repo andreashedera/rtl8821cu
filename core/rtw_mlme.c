@@ -4229,6 +4229,19 @@ int rtw_rsn_sync_pmkid(_adapter *adapter, u8 *ie, uint ie_len, int i_ent)
 	if (i_ent < 0 && info.pmkid_cnt == 0)
 		goto exit;
 
+    if (info.pmkid_list == NULL) {
+		RTW_INFO(FUNC_ADPT_FMT" pmkid_list is NULL, count:%u\n"
+			 , FUNC_ADPT_ARG(adapter), info.pmkid_cnt);
+		goto exit;
+    }
+
+    if ((i_ent >= NUM_PRE_AUTH_KEY) || (sec->PMKIDList[i_ent].PMKID == NULL))
+    {
+		RTW_INFO(FUNC_ADPT_FMT" pmkid_list error, i_ent:%d\n"
+			 , FUNC_ADPT_ARG(adapter), i_ent);
+		goto exit;
+    }
+
 	if (i_ent >= 0 && info.pmkid_cnt == 1 && _rtw_memcmp(info.pmkid_list, sec->PMKIDList[i_ent].PMKID, 16)) {
 		RTW_INFO(FUNC_ADPT_FMT" has carried the same PMKID:"KEY_FMT"\n"
 			, FUNC_ADPT_ARG(adapter), KEY_ARG(&sec->PMKIDList[i_ent].PMKID));
@@ -4251,16 +4264,34 @@ int rtw_rsn_sync_pmkid(_adapter *adapter, u8 *ie, uint ie_len, int i_ent)
 			, FUNC_ADPT_ARG(adapter), KEY_ARG(sec->PMKIDList[i_ent].PMKID));
 
 		info.pmkid_cnt = 1; /* update new pmkid_cnt */
-		if (sec->PMKIDList[i_ent].PMKID != NULL)
+		if (sec->PMKIDList[i_ent].PMKID == NULL)
+        {
+            RTW_INFO(FUNC_ADPT_FMT"PMKIDList[i_ent].PMKID NULL, i_ent:%d\n"
+                    , FUNC_ADPT_ARG(adapter), i_ent);
+            goto exit;
+        }
+        if (info.pmkid_list != NULL) {
 			_rtw_memcpy(info.pmkid_list, sec->PMKIDList[i_ent].PMKID, 16);
-		else
-			return -1;
+        }
+		else {
+            RTW_INFO(FUNC_ADPT_FMT"copy pmkid_list error, i_ent:%d\n"
+                    , FUNC_ADPT_ARG(adapter), i_ent);
+            goto exit;
+        }
 	} else
 		info.pmkid_cnt = 0; /* update new pmkid_cnt */
 
 	RTW_PUT_LE16(info.pmkid_list - 2, info.pmkid_cnt);
-	if (info.gmcs)
-		_rtw_memcpy(info.pmkid_list + 16 * info.pmkid_cnt, gm_cs, 4);
+	if (info.gmcs) {
+        if (info.pmkid_list != NULL) {
+            _rtw_memcpy(info.pmkid_list + 16 * info.pmkid_cnt, gm_cs, 4);
+        }
+		else {
+            RTW_INFO(FUNC_ADPT_FMT"copy pmkid_lis+16 error, info.pmkid_cnt:%u\n"
+                    , FUNC_ADPT_ARG(adapter), info.pmkid_cnt);
+            goto exit;
+        }
+    }
 
 	ie_len = 1 + 1 + 2 + 4
 		+ 2 + 4 * info.pcs_cnt
